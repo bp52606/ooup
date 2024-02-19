@@ -1,0 +1,49 @@
+1.
+mov	DWORD PTR [esp], 8
+	call	__Znwj
+	mov	ebx, eax
+	mov	ecx, ebx
+	call	__ZN9CoolClassC1Ev
+	mov	DWORD PTR [ebp-12], ebx
+2.
+Za objekt pb je pozvana funkcija __Znwj koja predstavlja operator new, a zatim je pozvana funkcija __ZN9CoolClassC1Ev koja predstavlja konstruktor za klasu CoolClass, nakon čega se adresa novog objekta sprema na stog. Za objekt poc se ne kreira novi objekt, već se za stvorenu varijablu zauzima na stogu memorija veličine objekta klase PlainCoolClass te nad varijablom poziva funkcija set.
+
+3. Ne poziva se konstruktor objekta poc.
+
+4. 
+Poziv konstruktora objekta *pb odvija se sljedećim dijelom koda: 
+call	__ZN9CoolClassC1Ev
+mov	DWORD PTR [ebp-12], ebx
+Poziva se konstruktor klase CoolClass unutar kojega se poziva i konstruktor klase Base. Nakon toga se kreira virtualna tablica koja se sprema u memoriju. Nakon poziva konstruktora se pokazivač na kreirani object sprema na stog. Od adrese koja pokazuje na bazu stoga, pokazivač na novi objekt je udaljen za 12 bajtova.
+
+5. 
+Manje instrukcija zahtijeva poziv poc.set.
+Za poc se pronalazi gdje je taj PlainCoolClass objekt spremljen u memoriji, nakon čega se kao prvi (i jedini) argument za funkciju set uzima broj 42 te šalje toj funkciji, nakon čega se ona poziva.
+lea	eax, [ebp-16]
+mov	DWORD PTR [esp], 42
+mov	ecx, eax
+call	__ZN13PlainOldClass3setEi
+
+Za pb se pronalazi njegova adresa i zatim se pronalazi adresa pokazivača na virtualnu tablicu čiji se prvi element dohvaća (odnosno prva funkcija), a to je u ovom skučaju upravo funkcija set, zatim se ona poziva te kao njen argument šalje broj 42.
+
+mov	eax, DWORD PTR [ebp-12]
+mov	eax, DWORD PTR [eax]
+mov	edx, DWORD PTR [eax]
+mov	eax, DWORD PTR [ebp-12]
+mov	DWORD PTR [esp], 42
+mov	ecx, eax
+call	edx
+
+Inlining nije moguć kod objekta klase koja sadržava virtualne funkcije jer se one razrješavaju tek kod izvođenja, a ne prevođenja programa, odnosno ne može se kod samo “prepisati” (inlining) jer compiler ne zna što mora prepisati. Dakle, inlining je moguć samo za objekt poc.
+
+6.
+mov	edx, OFFSET FLAT:__ZTV9CoolClass+8
+__ZTV9CoolClass:
+.long	0
+.long	__ZTI9CoolClass
+.long	__ZN9CoolClass3setEi
+.long	__ZN9CoolClass3getEv
+.globl	__ZTV4Base
+.section	.rdata$_ZTV4Base,"dr"
+.linkonce same_size
+.align 4

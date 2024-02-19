@@ -1,0 +1,3 @@
+Sizeof(CoolClass) = 8
+Sizeof(PlainCoolClass) = 4
+Uporaba virtualnih funkcija povećava veličinu objekta, za veličinu jedne, odnosno prve virtualne funkcije.

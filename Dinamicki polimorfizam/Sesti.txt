@@ -1,0 +1,98 @@
+cfi_startproc
+push	ebp
+.cfi_def_cfa_offset 8
+.cfi_offset 5, -8
+mov	ebp, esp
+.cfi_def_cfa_register 5
+sub	esp, 24
+mov	DWORD PTR [ebp-12], ecx
+mov	eax, DWORD PTR [ebp-12]
+mov	ecx, eax
+call	__ZN4BaseC2Ev
+
+Poziva se prvo funkcija metoda() iz klase Base jer se konstruktor od Base klase poziva u konstruktoru od Derived klase.
+
+__ZN4BaseC2Ev:
+LFB16:
+	.cfi_startproc
+	push	ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	mov	ebp, esp
+	.cfi_def_cfa_register 5
+	sub	esp, 24
+	mov	DWORD PTR [ebp-12], ecx
+	mov	edx, OFFSET FLAT:__ZTV4Base+8
+	mov	eax, DWORD PTR [ebp-12]
+	mov	DWORD PTR [eax], edx
+	mov	eax, DWORD PTR [ebp-12]
+	mov	ecx, eax
+	call	__ZN4Base6metodaEv
+
+__ZN4Base6metodaEv:
+LFB19:
+	.cfi_startproc
+	push	ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	mov	ebp, esp
+	.cfi_def_cfa_register 5
+	sub	esp, 40
+	mov	DWORD PTR [ebp-12], ecx
+	mov	DWORD PTR [esp], OFFSET FLAT:LC1
+	call	_printf
+	mov	eax, DWORD PTR [ebp-12]
+	mov	eax, DWORD PTR [eax]
+	mov	edx, DWORD PTR [eax]
+	mov	eax, DWORD PTR [ebp-12]
+	mov	ecx, eax
+	call	edx
+__ZN4Base15virtualnaMetodaEv:
+LFB18:
+	.cfi_startproc
+	push	ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	mov	ebp, esp
+	.cfi_def_cfa_register 5
+	sub	esp, 40
+	mov	DWORD PTR [ebp-12], ecx
+	mov	DWORD PTR [esp], OFFSET FLAT:LC0
+	call	_puts
+	nop
+	leave
+	.cfi_restore 5
+	.cfi_def_cfa 4, 4
+	ret
+	.cfi_endproc
+ 
+Zatim se poziva i virtualnaMetoda() klase Base.
+	mov	edx, OFFSET FLAT:__ZTV4Base+8
+	mov	eax, DWORD PTR [ebp-12]
+	mov	DWORD PTR [eax], edx
+	mov	eax, DWORD PTR [ebp-12]
+	mov	ecx, eax
+	call	__ZN4Base6metodaEv
+
+__ZN7Derived15virtualnaMetodaEv:
+LFB23:
+	.cfi_startproc
+	push	ebp
+	.cfi_def_cfa_offset 8
+	.cfi_offset 5, -8
+	mov	ebp, esp
+	.cfi_def_cfa_register 5
+	sub	esp, 40
+	mov	DWORD PTR [ebp-12], ecx
+	mov	DWORD PTR [esp], OFFSET FLAT:LC2
+	call	_puts
+	nop
+	leave
+	.cfi_restore 5
+	.cfi_def_cfa 4, 4
+	ret
+	.cfi_endproc
+
+Nakon toga se unutar konstruktora od klase Derived poziva metoda() koja se nalazi unutar klase Base, a unutar nje će se pozvati virtualnaMetoda() koja pripada klasi Derived jer je ona nasljeđuje. Nakon toga se nad pokazivačem pd, poziva metoda() iz klase Base te virtualnaMetoda() iz klase Derived jer je pokazivač tipa Derived.
+
+Problem kod Jave i C# je u tome što se konstruktor roditelja poziva prije konstruktora klasa koje ih nasljeđuju, stoga ako se iz klase roditelja pozove funkcija djeteta, a u njoj se pokušava iskoristiti objekt koji još nije inicijaliziran, nastati će  iznimka zato što se konstrukcija djeteta tada još neće izvesti.
